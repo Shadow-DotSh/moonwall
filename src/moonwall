@@ -105,6 +105,26 @@ function select_local_video() {
 }
 # }}}
 
+# Help {{{
+
+show_help() {
+  cat << EOF
+USAGE:
+  moonwall.sh <command>
+
+COMMANDS:
+  -v|--video        Use local video
+  -r|--restore      Restore the last used wallpaper
+
+  -h|--help         Display this help message
+
+ENV:
+  MOONWALL_VIDEOS   Video directory
+
+EOF
+}
+# }}}
+
 # }}}
 
 # Usage {{{
@@ -119,8 +139,13 @@ case "$1" in
     apply_video
   ;;
 
+  -h|--help)
+    show_help
+    exit 0
+  ;;
+
   *)
-    log "[ERROR]: Option not found"
+    log "[ERROR]: Option not found, use -h for help"
     exit 1
   ;;
 esac

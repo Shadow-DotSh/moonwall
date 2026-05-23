@@ -9,7 +9,7 @@ default_videos_dir="${xdg_videos_dir:-${HOME}/Videos}/moonwall"
 
 # Data
 data_dir="${XDG_DATA_HOME:-${HOME}/.local/share}/moonwall"
-socket="${XDG_RUNTIME_DIR:-/run/user/${UID}}/moonwall.sock"
+export socket="${XDG_RUNTIME_DIR:-/run/user/${UID}}/moonwall.sock"
 system_dir="/etc/moonwall"
 # }}}
 
@@ -20,6 +20,7 @@ mkdir -p "$data_dir" "$default_videos_dir"
 
 # Kill old players
 pkill -quiet xwinwrap
+pkill -quiet -f "$system_dir/moonwall-daemon.sh"
 rm -f "$socket"
 # }}}
 
@@ -59,6 +60,9 @@ function apply_video() {
     mpv -wid WID "$video" --config-dir="$mpv_config" --input-ipc-server="$socket" \
     --fullscreen --panscan=1 --no-audio --loop \
     --input-default-bindings=no --input-cursor=no --osc=no --osd-level=0 --terminal=no
+
+  # Start daemon with a delay
+  sleep 30 && nohup "$system_dir/moonwall-daemon.sh" > /dev/null 2>&1 &
 }
 # }}}
 

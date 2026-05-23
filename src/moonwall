@@ -3,16 +3,19 @@
 
 # Variables {{{
 
+# Media
 xdg_videos_dir="$(xdg-user-dir VIDEOS)"
+default_videos_dir="${xdg_videos_dir:-${HOME}/Videos}/moonwall"
 
-export default_videos_dir="${xdg_videos_dir:-${HOME}/Videos}/moonwall"
-export system_dir="/etc/moonwall"
+# Data
+data_dir="${XDG_DATA_HOME:-${HOME}/.local/share}/moonwall"
+system_dir="/etc/moonwall"
 # }}}
 
 # Start {{{
 
 # Create directories
-mkdir -p "$default_videos_dir"
+mkdir -p "$data_dir" "$default_videos_dir"
 # }}}
 
 # Functions {{{
@@ -56,6 +59,14 @@ function select_local_video() {
   # Select video
   selected="$(rofi -config "$system_dir/moonwall.rasi" -show filebrowser \
     -filebrowser-directory "$dir" 2>/dev/null)"
+
+  # Check if video is selected
+  if [[ ! -n "$selected" ]]; then
+    log "[ERROR]: No video selected"
+    exit 1
+  else
+    echo "$selected" > "$data_dir/last"
+  fi
 }
 # }}}
 

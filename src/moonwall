@@ -4,7 +4,9 @@
 # Variables {{{
 
 xdg_videos_dir="$(xdg-user-dir VIDEOS)"
+
 export default_videos_dir="${xdg_videos_dir:-${HOME}/Videos}/moonwall"
+export system_dir="/etc/moonwall"
 # }}}
 
 # Start {{{
@@ -25,7 +27,7 @@ function log() {
 # Local video {{{
 
 function select_local_video() {
-  local dir
+  local dir selected
 
   # Check for env directory
   if [[ -n "$MOONWALL_VIDEOS" ]]; then
@@ -50,6 +52,10 @@ function select_local_video() {
     log "[ERROR]: No directory found"
     exit 1
   fi
+
+  # Select video
+  selected="$(rofi -config "$system_dir/moonwall.rasi" -show filebrowser \
+    -filebrowser-directory "$dir" 2>/dev/null)"
 }
 # }}}
 

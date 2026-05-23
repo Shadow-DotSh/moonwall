@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+# vim:foldmethod=marker
+
+# Variables {{{
+
+# Media
+xdg_videos_dir="$(xdg-user-dir VIDEOS)"
+default_videos_dir="${xdg_videos_dir:-${HOME}/Videos}/moonwall"
+
+# Data
+data_dir="${XDG_DATA_HOME:-${HOME}/.local/share}/moonwall"
+socket="${XDG_RUNTIME_DIR:-/run/user/${UID}}/moonwall.sock"
+system_dir="/etc/moonwall"
+# }}}
+
+# Start {{{
+
+# Create directories
+mkdir -p "$data_dir" "$default_videos_dir"
+
+# Kill old players
+pkill -quiet xwinwrap
+rm -f "$socket"
+# }}}
+
+# Functions {{{
+
+# Log {{{
+
+function log() {
+  echo "[$(date +'%Y-%m-%d %H:%M:%S')]: $*" >&2
+}
+# }}}
+
+# Apply Video {{{
+
+function apply_video() {
+  local mpv_config video
+
+  # Load video
+  if [[ ! -f "$data_dir/last" ]]; then
+    log "[ERROR]: No video to load"
+  else
+    video="$(<"$data_dir/last")"
+    log "[INFO]: Video loaded"
+  fi
+
+  # Load config
+  if [[ -f "$data_dir/mpv.conf" ]]; then
+    mpv_config="$data_dir"
+    log "[INFO]: Loaded user-configuration"
+  else
+    mpv_config="$system_dir"
+    log "[INFO]: Loaded system_configuration"
+  fi
+
+  # Embed video
+  xwinwrap -ni -fdt -fs -s -st -sp -b -nf -ovr -d -- \
+    mpv -wid WID "$video" --config-dir="$mpv_config" --input-ipc-server="$socket" \
+    --fullscreen --panscan=1 --no-audio --loop \
+    --input-default-bindings=no --input-cursor=no --osc=no --osd-level=0 --terminal=no
+}
+# }}}
+
+# Local video {{{
+
+function select_local_video() {
+  local dir selected
+
+  # Check for env directory
+  if [[ -n "$MOONWALL_VIDEOS" ]]; then
+    if [[ ! -d "$MOONWALL_VIDEOS" ]]; then
+      log "[ERROR]: Directory set in env MOONWALL_VIDEOS not found"
+    else
+      dir="$MOONWALL_VIDEOS"
+      log "[INFO]: Using directory set in env MOONWALL_VIDEOS"
+    fi
+  else
+    # Check for default directory
+    if [[ ! -d "$default_videos_dir" ]]; then
+      log "[ERROR]: Default directory not found"
+    else
+      dir="$default_videos_dir"
+      log "[INFO]: Using default directory"
+    fi
+  fi
+
+  # Check if a directory is set
+  if [[ -z "$dir" ]]; then
+    log "[ERROR]: No directory found"
+    exit 1
+  fi
+
+  # Select video
+  selected="$(rofi -config "$system_dir/moonwall.rasi" -show filebrowser \
+    -filebrowser-directory "$dir" 2>/dev/null)"
+
+  # Check if video is selected
+  if [[ ! -n "$selected" ]]; then
+    log "[ERROR]: No video selected"
+    exit 1
+  else
+    echo "$selected" > "$data_dir/last"
+  fi
+}
+# }}}
+
+# Help {{{
+
+show_help() {
+  cat << EOF
+USAGE:
+  moonwall.sh <command>
+
+COMMANDS:
+  -v|--video        Use local video
+  -r|--restore      Restore the last used wallpaper
+
+  -h|--help         Display this help message
+
+ENV:
+  MOONWALL_VIDEOS   Video directory
+
+EOF
+}
+# }}}
+
+# }}}
+
+# Usage {{{
+
+case "$1" in
+  -v|--video)
+    select_local_video
+    apply_video
+  ;;
+  
+  -r|--restore)
+    apply_video
+  ;;
+
+  -h|--help)
+    show_help
+    exit 0
+  ;;
+
+  *)
+    log "[ERROR]: Option not found, use -h for help"
+    exit 1
+  ;;
+esac
+# }}}

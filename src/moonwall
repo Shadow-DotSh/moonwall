@@ -1,6 +1,18 @@
 #!/usr/bin/env bash
 # vim:foldmethod=marker
 
+# Variables {{{
+
+xdg_videos_dir="$(xdg-user-dir VIDEOS)"
+export default_videos_dir="${xdg_videos_dir:-${HOME}/Videos}/moonwall"
+# }}}
+
+# Start {{{
+
+# Create directories
+mkdir -p "$default_videos_dir"
+# }}}
+
 # Functions {{{
 
 # Log {{{

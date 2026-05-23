@@ -106,3 +106,22 @@ function select_local_video() {
 # }}}
 
 # }}}
+
+# Usage {{{
+
+case "$1" in
+  -v|--video)
+    select_local_video
+    apply_video
+  ;;
+  
+  -r|--restore)
+    apply_video
+  ;;
+
+  *)
+    log "[ERROR]: Option not found"
+    exit 1
+  ;;
+esac
+# }}}

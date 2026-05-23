@@ -22,4 +22,35 @@ function log() {
 }
 # }}}
 
+# Local video {{{
+
+function select_local_video() {
+  local dir
+
+  # Check for env directory
+  if [[ -n "$MOONWALL_VIDEOS" ]]; then
+    if [[ ! -d "$MOONWALL_VIDEOS" ]]; then
+      log "[ERROR]: Directory set in env MOONWALL_VIDEOS not found"
+    else
+      dir="$MOONWALL_VIDEOS"
+      log "[INFO]: Using directory set in env MOONWALL_VIDEOS"
+    fi
+  else
+    # Check for default directory
+    if [[ ! -d "$default_videos_dir" ]]; then
+      log "[ERROR]: Default directory not found"
+    else
+      dir="$default_videos_dir"
+      log "[INFO]: Using default directory"
+    fi
+  fi
+
+  # Check if a directory is set
+  if [[ -z "$dir" ]]; then
+    log "[ERROR]: No directory found"
+    exit 1
+  fi
+}
+# }}}
+
 # }}}

@@ -17,6 +17,10 @@ system_dir="/etc/moonwall"
 
 # Create directories
 mkdir -p "$data_dir" "$default_videos_dir"
+
+# Kill old players
+pkill -quiet xwinwrap
+rm -f "$socket"
 # }}}
 
 # Functions {{{

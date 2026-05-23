@@ -9,6 +9,7 @@ default_videos_dir="${xdg_videos_dir:-${HOME}/Videos}/moonwall"
 
 # Data
 data_dir="${XDG_DATA_HOME:-${HOME}/.local/share}/moonwall"
+socket="${XDG_RUNTIME_DIR:-/run/user/${UID}}/moonwall.sock"
 system_dir="/etc/moonwall"
 # }}}
 
@@ -24,6 +25,36 @@ mkdir -p "$data_dir" "$default_videos_dir"
 
 function log() {
   echo "[$(date +'%Y-%m-%d %H:%M:%S')]: $*" >&2
+}
+# }}}
+
+# Apply Video {{{
+
+function apply_video() {
+  local mpv_config video
+
+  # Load video
+  if [[ ! -f "$data_dir/last" ]]; then
+    log "[ERROR]: No video to load"
+  else
+    video="$(<"$data_dir/last")"
+    log "[INFO]: Video loaded"
+  fi
+
+  # Load config
+  if [[ -f "$data_dir/mpv.conf" ]]; then
+    mpv_config="$data_dir"
+    log "[INFO]: Loaded user-configuration"
+  else
+    mpv_config="$system_dir"
+    log "[INFO]: Loaded system_configuration"
+  fi
+
+  # Embed video
+  xwinwrap -ni -fdt -fs -s -st -sp -b -nf -ovr -d -- \
+    mpv -wid WID "$video" --config-dir="$mpv_config" --input-ipc-server="$socket" \
+    --fullscreen --panscan=1 --no-audio --loop \
+    --input-default-bindings=no --input-cursor=no --osc=no --osd-level=0 --terminal=no
 }
 # }}}
 
